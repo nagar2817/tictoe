@@ -9,7 +9,7 @@
 ## Usage
 
 1. **Start the game**:
-   - Open your browser and navigate to `http://localhost:8000/api/`.
+   - Open your browser and navigate to `https://tictoe-vcin.onrender.com/`.
    - Enter the email addresses of the two players and click "Start Game".
 
 2. **Play the game**:
