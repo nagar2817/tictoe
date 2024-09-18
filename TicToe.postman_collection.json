@@ -1,0 +1,83 @@
+{
+	"info": {
+		"_postman_id": "760c7cd9-453d-4bd9-aa56-c3f7e716d8f0",
+		"name": "TicToe",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "11065068",
+		"_collection_link": "https://cloudy-capsule-838968.postman.co/workspace/3ecf4775-15d2-429b-9520-aaf3c0798bcc/collection/11065068-760c7cd9-453d-4bd9-aa56-c3f7e716d8f0?action=share&source=collection_link&creator=11065068"
+	},
+	"item": [
+		{
+			"name": "create_game",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"player1_email\": \"player1@example.com\",\r\n  \"player2_email\": \"player2@example.com\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{localhost}}api/initialize-game/",
+					"host": [
+						"{{localhost}}api"
+					],
+					"path": [
+						"initialize-game",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "{{localhost}}api/update_board/",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"board_id\": 1,\r\n  \"user_id\": 1,\r\n  \"i\": 0,\r\n  \"j\": 0\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{localhost}}api/update-board/",
+					"host": [
+						"{{localhost}}api"
+					],
+					"path": [
+						"update-board",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "{{localhost}}api/get_latest_state/7",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{localhost}}api/get-board-state/1",
+					"host": [
+						"{{localhost}}api"
+					],
+					"path": [
+						"get-board-state",
+						"1"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
