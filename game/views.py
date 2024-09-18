@@ -1,76 +1,68 @@
-import re
 from rest_framework import status
-from rest_framework.views import APIView
 from rest_framework.response import Response
-from .models import BoardState, Player
+from rest_framework.views import APIView
+from .models import Player, BoardState
 from .serializers import BoardStateSerializer
-from .utils import check_winner, validMove
-from rest_framework.renderers import TemplateHTMLRenderer
 from django.shortcuts import render
 
-class MyGameUI(APIView):
-      renderer_classes = [TemplateHTMLRenderer]
-      template_name = 'index.html'
+class RenderHTMLView(APIView):
+    def get(self, request):
+        return render(request, 'index.html')
 
-      def get(self, request):
-          return Response()
-    
-class CreateGameView(APIView):
-    def post(self, request, format=None):
-        board_state = BoardState.objects.create(data=["_"] * 9)
+class InitializeGameView(APIView):
+    def post(self, request):
+        player1_email = request.data.get('player1_email')
+        player2_email = request.data.get('player2_email')
 
-        # Create player 1
-        player1_data = request.data.get('player1')
-        player1 = Player.objects.create(type='X', email=player1_data['email'], board=board_state)
+        if not player1_email or not player2_email:
+            return Response({"error": "Both player emails are required"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Create player 2
-        player2_data = request.data.get('player2')
-        player2 = Player.objects.create(type='O', email=player2_data['email'], board=board_state)
+        player1, _ = Player.objects.get_or_create(email=player1_email)
+        player2, _ = Player.objects.get_or_create(email=player2_email)
 
-        return Response({'board_id': board_state.id, 'player1_id': player1.id, 'player2_id': player2.id}, status=status.HTTP_201_CREATED)
+        board_state = BoardState.objects.create(player1=player1, player2=player2, current_turn=player1)
+
+        serializer = BoardStateSerializer(board_state)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 class UpdateBoardView(APIView):
     def post(self, request):
+        board_id = request.data.get('board_id')
+        user_id = request.data.get('user_id')
         i = request.data.get('i')
         j = request.data.get('j')
-        user = request.data.get('user')
-        board_id = request.data.get('board_id')
+
+        if not board_id or not user_id or i is None or j is None:
+            return Response({"error": "board_id, user_id, i, and j are required"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            board = BoardState.objects.get(id=board_id)
-            player = Player.objects.get(id=user)
+            board_state = BoardState.objects.get(id=board_id)
+            player = Player.objects.get(id=user_id)
         except (BoardState.DoesNotExist, Player.DoesNotExist):
-            return Response({"error": "Invalid board or player ID"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "Invalid board_id or user_id"}, status=status.HTTP_404_NOT_FOUND)
 
-        if not validMove(i,j, board):
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+        if board_state.current_turn != player:
+            return Response({"error": "Not your turn"}, status=status.HTTP_403_FORBIDDEN)
 
         index = i * 3 + j
-        if board.data[index] != '_':
-            return Response({"error": "Position already taken"}, status=status.HTTP_400_BAD_REQUEST)
+        if board_state.board[index] != ' ':
+            return Response({"error": "Invalid move"}, status=status.HTTP_400_BAD_REQUEST)
 
-        if board.active_player == player:
-            return Response({"error":"you're not allowed!!"}, status=status.HTTP_400_BAD_REQUEST)
-            
-        board.data[index] = player.type
-        board.active_player = player
-        board.save()
+        new_board = list(board_state.board)
+        new_board[index] = 'X' if board_state.current_turn == board_state.player1 else 'O'
+        board_state.board = ''.join(new_board)
+        board_state.current_turn = board_state.player2 if board_state.current_turn == board_state.player1 else board_state.player1
+        board_state.save()
 
-        if check_winner(board.data, player.type):
-            return Response({"message": "Player {} won!".format(player.type),
-                            "data":BoardStateSerializer(board).data }, status=status.HTTP_200_OK)
+        serializer = BoardStateSerializer(board_state)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
-        if '_' not in board.data:
-            return Response({"message": "Draw!"}, status=status.HTTP_200_OK)
-
-        return Response(BoardStateSerializer(board).data, status=status.HTTP_200_OK)
-
-class GetLatestStateView(APIView):
-    def get(self, request, id):
+class GetBoardStateView(APIView):
+    def get(self, request, board_id):
         try:
-            board = BoardState.objects.get(id=id)
+            board_state = BoardState.objects.get(id=board_id)
         except BoardState.DoesNotExist:
             return Response({"error": "Board not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        active_player = "X" if board.active_player.type == "O" else "O"
-        return Response({"board_state": board.data, "active_player": active_player}, status=status.HTTP_200_OK)
+        serializer = BoardStateSerializer(board_state)
+        return Response(serializer.data, status=status.HTTP_200_OK)

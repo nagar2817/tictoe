@@ -1,14 +1,12 @@
 from rest_framework import serializers
-
-from .models import BoardState, Player
-
-
-class BoardStateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = BoardState
-        fields = ['id', 'data']
+from .models import Player, BoardState
 
 class PlayerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Player
-        fields = ['id', 'type', 'email', 'board']
+        fields = ['id', 'email']
+
+class BoardStateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BoardState
+        fields = ['id', 'player1', 'player2', 'board', 'current_turn']

@@ -1,10 +1,9 @@
 from django.urls import path
-
-from .views import CreateGameView, GetLatestStateView, UpdateBoardView, MyGameUI
+from .views import InitializeGameView, RenderHTMLView, UpdateBoardView, GetBoardStateView
 
 urlpatterns = [
-    path('create_game/', CreateGameView.as_view(), name='create_game'),
-    path('update_board/', UpdateBoardView.as_view(), name='update_board'),
-    path('get_latest_state/<int:id>/', GetLatestStateView.as_view(), name='get_latest_state'),
-    path('', MyGameUI.as_view(), name='game_ui'),
+    path('initialize-game/', InitializeGameView.as_view(), name='initialize-game'),
+    path('update-board/', UpdateBoardView.as_view(), name='update-board'),
+    path('get-board-state/<int:board_id>/', GetBoardStateView.as_view(), name='get-board-state'),
+    path('', RenderHTMLView.as_view())
 ]
